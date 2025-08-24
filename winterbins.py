@@ -18,6 +18,9 @@ logging.basicConfig(
 )
 log = logging.getLogger("winterbins")
 
+# Reducir spam de httpx
+logging.getLogger("httpx").setLevel(logging.WARNING)
+
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
 GROUP_CHAT_ID = int(os.getenv("GROUP_CHAT_ID"))      # ej. -1001234567890
@@ -124,8 +127,18 @@ def main():
     app.add_handler(CommandHandler("tested", tested_command))
     app.add_handler(MessageHandler(filters.PHOTO | filters.VIDEO, collect_album))
 
-    log.info("🤖 bot listo.")
-    app.run_polling()
+    # Configurar webhook en lugar de polling
+    PORT = int(os.getenv("PORT", 8080))
+    WEBHOOK_URL = os.getenv("WEBHOOK_URL")  # ejemplo: https://tu-app.onrender.com/webhook
+
+    log.info("🤖 bot listo con webhook.")
+    app.run_webhook(
+        listen="0.0.0.0",
+        port=PORT,
+        url_path=TOKEN,
+        webhook_url=f"{WEBHOOK_URL}/{TOKEN}",
+    )
 
 if __name__ == "__main__":
     main()
+# winterbins.py — copia texto, fotos sueltas y álbumes (fotos + videos)
